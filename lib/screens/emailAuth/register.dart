@@ -1,20 +1,34 @@
 import 'dart:developer';
+import 'dart:typed_data';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:instagram_clone/resources/auth_methods.dart';
 import 'package:instagram_clone/utils/colors.dart';
+import 'package:instagram_clone/utils/utils.dart';
 import 'package:instagram_clone/widgets/TextFieldInput.dart';
 
-class EmailRegister extends StatelessWidget {
-  EmailRegister({super.key});
+class EmailRegister extends StatefulWidget {
+  const EmailRegister({super.key});
+
+  @override
+  State<EmailRegister> createState() => _EmailRegisterState();
+}
+
+class _EmailRegisterState extends State<EmailRegister> {
   TextEditingController emailController = TextEditingController();
+
   TextEditingController passwordController = TextEditingController();
+
   TextEditingController cpasswordController = TextEditingController();
+
   TextEditingController usernamController = TextEditingController();
+
   TextEditingController bioController = TextEditingController();
 
+  Uint8List? image;
   void Register(BuildContext context) async {
     String email = emailController.text;
     String password = passwordController.text;
@@ -35,6 +49,13 @@ class EmailRegister extends StatelessWidget {
 
       // log();s
     }
+  }
+
+  SelectImage() async {
+    Uint8List img = await PickImage(ImageSource.gallery);
+    setState(() {
+      image = img;
+    });
   }
 
   @override
@@ -62,16 +83,23 @@ class EmailRegister extends StatelessWidget {
               ),
               Stack(
                 children: [
-                  const CircleAvatar(
-                    radius: 64,
-                    backgroundImage: NetworkImage(
-                        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJ437yIliz8bD_CfEsagFeT2SAkaCHZOvNgQ&usqp=CAU'),
-                  ),
+                  image != null
+                      ? CircleAvatar(
+                          radius: 64,
+                          backgroundImage: MemoryImage(image!),
+                        )
+                      : const CircleAvatar(
+                          radius: 64,
+                          backgroundImage: NetworkImage(
+                              'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJ437yIliz8bD_CfEsagFeT2SAkaCHZOvNgQ&usqp=CAU'),
+                        ),
                   Positioned(
                       bottom: -10,
                       right: -10,
                       child: IconButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            SelectImage();
+                          },
                           icon: const Icon(
                             Icons.add_a_photo,
                             size: 30,
@@ -130,11 +158,13 @@ class EmailRegister extends StatelessWidget {
               InkWell(
                   onTap: () async {
                     String res = await AuthMethods().SignUp(
-                        email: emailController.text,
-                        password: passwordController.text,
-                        cPassword: cpasswordController.text,
-                        bio: bioController.text,
-                        name: usernamController.text);
+                      email: emailController.text,
+                      password: passwordController.text,
+                      cPassword: cpasswordController.text,
+                      bio: bioController.text,
+                      file: image!,
+                      name: usernamController.text,
+                    );
                     print(res);
                   },
                   child: Container(
