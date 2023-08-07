@@ -37,8 +37,21 @@ class AuthMethods {
         });
       }
       res = "success";
-    } catch (e) {
-      res = e.toString();
+    } on FirebaseAuthException catch (e) {
+      res = e.code.toString();
+    }
+    return res;
+  }
+
+  Future<String> LoginWithEmailandPass(
+      {required String email, required String pass}) async {
+    String res = "Something went wrong";
+    try {
+      UserCredential cred =
+          await auth.signInWithEmailAndPassword(email: email, password: pass);
+      res = "success";
+    } on FirebaseAuthException catch (err) {
+      res = err.code.toString();
     }
     return res;
   }

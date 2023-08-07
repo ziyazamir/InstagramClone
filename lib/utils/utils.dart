@@ -10,3 +10,11 @@ PickImage(ImageSource source) async {
   }
   print('no image selected');
 }
+
+ShowSnackBar(String data, BuildContext context) {
+  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    content: Text(data),
+    elevation: 10,
+    backgroundColor: Colors.blue,
+  ));
+}

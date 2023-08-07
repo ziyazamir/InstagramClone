@@ -1,7 +1,5 @@
-import 'dart:developer';
 import 'dart:typed_data';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
@@ -29,28 +27,28 @@ class _EmailRegisterState extends State<EmailRegister> {
   TextEditingController bioController = TextEditingController();
 
   Uint8List? image;
-  void Register(BuildContext context) async {
-    String email = emailController.text;
-    String password = passwordController.text;
-    String cpassword = cpasswordController.text;
-    if (password == null) {
-      log("please eneter all the fields");
-    } else if (password != cpassword) {
-      log("password doesnt matched");
-    } else {
-      try {
-        UserCredential user = await FirebaseAuth.instance
-            .createUserWithEmailAndPassword(email: email, password: password);
-        log("user created");
-        Navigator.pop(context);
-      } on FirebaseAuthException catch (ex) {
-        log(ex.code.toString());
-      }
+  // void Register(BuildContext context) async {
+  //   String email = emailController.text;
+  //   String password = passwordController.text;
+  //   String cpassword = cpasswordController.text;
+  //   if (password == null) {
+  //     log("please eneter all the fields");
+  //   } else if (password != cpassword) {
+  //     log("password doesnt matched");
+  //   } else {
+  //     try {
+  //       UserCredential user = await FirebaseAuth.instance
+  //           .createUserWithEmailAndPassword(email: email, password: password);
+  //       log("user created");
+  //       Navigator.pop(context);
+  //     } on FirebaseAuthException catch (ex) {
+  //       log(ex.code.toString());
+  //     }
 
-      // log();s
-    }
-  }
-
+  //     // log();s
+  //   }
+  // }
+  bool _isLoading = false;
   SelectImage() async {
     Uint8List img = await PickImage(ImageSource.gallery);
     setState(() {
@@ -157,6 +155,9 @@ class _EmailRegisterState extends State<EmailRegister> {
               const SizedBox(height: 30),
               InkWell(
                   onTap: () async {
+                    setState(() {
+                      _isLoading = true;
+                    });
                     String res = await AuthMethods().SignUp(
                       email: emailController.text,
                       password: passwordController.text,
@@ -166,21 +167,39 @@ class _EmailRegisterState extends State<EmailRegister> {
                       name: usernamController.text,
                     );
                     print(res);
+                    if (res != "success") {
+                      ShowSnackBar(res, context);
+                      setState(() {
+                        _isLoading = false;
+                      });
+                    } else {
+                      setState(() {
+                        _isLoading = false;
+                      });
+                      ShowSnackBar('Signup Succesfully', context);
+
+                      Navigator.pop(context);
+                    }
                   },
                   child: Container(
                       alignment: Alignment.center,
-                      height: 30,
+                      // height: ,
+                      padding: const EdgeInsets.all(10),
                       decoration: const BoxDecoration(
                           color: primaryColor,
                           borderRadius: BorderRadius.all(Radius.circular(4))),
-                      child: const Text(
-                        "Register",
-                        style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 20,
-                            fontFamily: 'Roboto',
-                            fontWeight: FontWeight.bold),
-                      )))
+                      child: _isLoading
+                          ? const Center(
+                              child: CircularProgressIndicator(),
+                            )
+                          : const Text(
+                              "Register",
+                              style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 20,
+                                  fontFamily: 'Roboto',
+                                  fontWeight: FontWeight.bold),
+                            )))
             ]),
           ),
         ),

@@ -35,11 +35,11 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Intagram Clone',
       theme: ThemeData.dark(),
-      home: ResponsiveLayout(
-          mobileScreenLayout: FirebaseAuth.instance.currentUser != null
-              ? const MobileScreenLayout()
-              : EmailLogin(),
-          webScreenLayout: const WebScreenLayout()),
+      home: FirebaseAuth.instance.currentUser != null
+          ? const ResponsiveLayout(
+              mobileScreenLayout: MobileScreenLayout(),
+              webScreenLayout: WebScreenLayout())
+          : const EmailLogin(),
     );
   }
 }

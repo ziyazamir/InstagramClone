@@ -1,32 +1,55 @@
-import 'dart:developer';
-
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:instagram_clone/resources/auth_methods.dart';
 import 'package:instagram_clone/responsive/mobile_screen_layout.dart';
+import 'package:instagram_clone/responsive/responsive_layout_screen.dart';
+import 'package:instagram_clone/responsive/web_screen_layout.dart';
 import 'package:instagram_clone/screens/emailAuth/register.dart';
 import 'package:instagram_clone/utils/colors.dart';
+import 'package:instagram_clone/utils/utils.dart';
 import 'package:instagram_clone/widgets/TextFieldInput.dart';
 
 // ignore: must_be_immutable
-class EmailLogin extends StatelessWidget {
-  EmailLogin({super.key});
+class EmailLogin extends StatefulWidget {
+  const EmailLogin({super.key});
+
+  @override
+  State<EmailLogin> createState() => _EmailLoginState();
+}
+
+class _EmailLoginState extends State<EmailLogin> {
   TextEditingController emailController = TextEditingController();
+
   TextEditingController passwordController = TextEditingController();
+
+  bool _isloading = false;
+
   // TextEditingController phoneController = TextEditingController();
   void Login(context) async {
+    setState(() {
+      _isloading = true;
+    });
     String email = emailController.text.trim();
     String password = passwordController.text.trim();
-    try {
-      UserCredential user = await FirebaseAuth.instance
-          .signInWithEmailAndPassword(email: email, password: password);
+    String res =
+        await AuthMethods().LoginWithEmailandPass(email: email, pass: password);
+    if (res != "success") {
+      ShowSnackBar(res, context);
+      setState(() {
+        _isloading = false;
+      });
+    } else {
+      ShowSnackBar("login succesfully", context);
       Navigator.popUntil(context, (route) => route.isFirst);
       Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-              builder: ((context) => const MobileScreenLayout())));
-    } on FirebaseAuthException catch (ex) {
-      log(ex.code.toString());
+              builder: ((context) => const ResponsiveLayout(
+                  mobileScreenLayout: MobileScreenLayout(),
+                  webScreenLayout: WebScreenLayout()))));
+      setState(() {
+        _isloading = false;
+      });
     }
   }
 
@@ -73,21 +96,26 @@ class EmailLogin extends StatelessWidget {
                       },
                       child: Container(
                           width: double.infinity,
-                          height: 50,
+                          // height: 50,
+                          padding: const EdgeInsets.all(10),
                           decoration: const BoxDecoration(
                               color: primaryColor,
                               borderRadius:
                                   BorderRadius.all(Radius.circular(4))),
                           alignment: Alignment.center,
                           // color: primaryColor,
-                          child: const Text(
-                            "Login",
-                            style: TextStyle(
-                                color: Colors.black,
-                                fontSize: 30,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'Roboto'),
-                          ))),
+                          child: _isloading
+                              ? const Center(
+                                  child: CircularProgressIndicator(),
+                                )
+                              : const Text(
+                                  "Login",
+                                  style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'Roboto'),
+                                ))),
                   const SizedBox(
                     height: 100,
                   ),
@@ -100,7 +128,8 @@ class EmailLogin extends StatelessWidget {
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => EmailRegister()));
+                                      builder: (context) =>
+                                          const EmailRegister()));
                             },
                             child: const Text("Create account"))
                       ],
