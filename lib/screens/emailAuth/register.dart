@@ -50,10 +50,14 @@ class _EmailRegisterState extends State<EmailRegister> {
   // }
   bool _isLoading = false;
   SelectImage() async {
-    Uint8List img = await PickImage(ImageSource.gallery);
-    setState(() {
-      image = img;
-    });
+    try {
+      Uint8List img = await PickImage(ImageSource.gallery);
+      setState(() {
+        image = img;
+      });
+    } catch (e) {
+      print("image not selected");
+    }
   }
 
   @override

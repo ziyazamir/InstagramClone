@@ -2,11 +2,21 @@ import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:instagram_clone/models/user.dart' as model;
 import 'package:instagram_clone/resources/storage_methods.dart';
 
 class AuthMethods {
-  final FirebaseAuth auth = FirebaseAuth.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+  Future<model.User> getUserDetails() async {
+    User currentuser = _auth.currentUser!;
+
+    DocumentSnapshot snap =
+        await firestore.collection("users").doc(currentuser.uid).get();
+    return model.User.fromSnap(snap);
+  }
+
   Future<String> SignUp(
       {required String email,
       required String password,
@@ -23,18 +33,22 @@ class AuthMethods {
           name.isNotEmpty &&
           password == cPassword &&
           file.isNotEmpty) {
-        UserCredential cred = await auth.createUserWithEmailAndPassword(
+        UserCredential cred = await _auth.createUserWithEmailAndPassword(
             email: email, password: password);
         String downloadUrl = await StorageMethods()
             .uploadImageToStorage('ProfilePics', file, false);
-        await firestore.collection('users').doc(cred.user!.uid).set({
-          'username': name,
-          'email': email,
-          'bio': bio,
-          'followers': [],
-          'following': [],
-          'photoUrl': downloadUrl,
-        });
+
+        model.User user = model.User(
+            username: name,
+            email: email,
+            bio: bio,
+            followers: [],
+            following: [],
+            photoUrl: downloadUrl);
+        await firestore
+            .collection('users')
+            .doc(cred.user!.uid)
+            .set(user.toJson());
       }
       res = "success";
     } on FirebaseAuthException catch (e) {
@@ -48,7 +62,7 @@ class AuthMethods {
     String res = "Something went wrong";
     try {
       UserCredential cred =
-          await auth.signInWithEmailAndPassword(email: email, password: pass);
+          await _auth.signInWithEmailAndPassword(email: email, password: pass);
       res = "success";
     } on FirebaseAuthException catch (err) {
       res = err.code.toString();
